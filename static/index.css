@@ -1,12 +1,7 @@
 .modal-center {
     position: fixed;
     top: 40%;
-    left: 30%;
+    left: 25%;
     right: 35%;
     transform: translate(-50%, -50%);
 }
-
-/*h2 {
-    width: 50%;
-    margin: auto 0;
-}*/

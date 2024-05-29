@@ -88,7 +88,6 @@ def edit_row(row_id):
 
     return redirect(url_for('index'))
 
-
 @app.route('/delete_row/<int:row_id>', methods=['POST'])
 def delete_row(row_id):
     row = Row.query.get_or_404(row_id)
