@@ -300,8 +300,6 @@
                     const prep = cells[1].textContent.trim();
                     const assignedTo = cells[2].textContent.trim();
                     const date = cells[3].textContent.trim();
-                    const inScopeCheckbox = cells[4].querySelector('input[type="checkbox"]');
-                    console.log(inScopeCheckbox);
                     const inScope = cells[4].textContent.trim();
                     const comments = cells[5].textContent.trim();
                     const rca = cells[6].textContent.trim();
@@ -332,10 +330,10 @@
                         console.log('Selected options:', finalSelectedOptions);
                     });
 
-                    this.textContent = 'Editing...';
-                    this.disabled = true;
+                    this.style.display = 'none';
 
                     editedRows.add(row.id);
+
                 });
             });
 
@@ -352,7 +350,7 @@
                             row.querySelectorAll('input, textarea, select').forEach(input => {
                                 const name = input.name;
                                 if (input.tagName.toLowerCase() === 'select' && input.multiple) {
-                                    rowData[name] = Array.from(input.selectedOptions).map(option => option.value).join(',');
+                                    rowData[name] = Array.from(input.selectedOptions).map(option => option.value).join(', ');
                                 } else if (input.type === 'checkbox') {
                                     rowData[name] = input.checked ? 'Yes' : 'No';
                                     if (!input.checked) {
@@ -395,7 +393,11 @@
 
                                 cells[0].textContent = row.querySelector(`[name="incident_${rowId}"]`).value;
                                 cells[1].textContent = row.querySelector(`[name="prep_${rowId}"]`).value;
-                                cells[2].textContent = finalSelectedOptions;
+                                const assignedToSelect = document.createElement('select');
+                                const selectedOptions = Array.from(row.querySelectorAll(`[name="assigned_to_${rowId}"] option[selected]`));
+                                selectedOptions.forEach(option => {
+                                    assignedToSelect.appendChild(option.cloneNode(true));
+                                });
                                 cells[3].textContent = row.querySelector(`[name="date_${rowId}"]`).value;
                                 cells[4].textContent = row.querySelector(`[name="in_scope_${rowId}"]`).checked ? 'Yes' : 'No';
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
@@ -405,6 +407,13 @@
                             });
 
                             editedRows.clear();
+
+                            const editButtons = document.querySelectorAll('.edit-row-btn');
+
+                            editButtons.forEach(button => {
+                                button.style.display = 'block';
+                            });
+
                         } else {
                             console.error('Failed to save changes.');
                         }
