@@ -4,7 +4,6 @@ from flask_wtf import CSRFProtect, FlaskForm
 from wtforms import StringField, BooleanField, DateField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired
 import secrets
-import logging
 
 
 app = Flask(__name__)
@@ -80,7 +79,8 @@ def edit_row(row_id):
     row.prep = request.form['prep']
     row.assigned_to = request.form['assigned_to']
     row.date = request.form['date']
-    row.in_scope = request.form['in_scope']
+    row.in_scope = 'Yes' if request.form.get('in_scope') == 'true' else 'No'
+    app.logger.debug(f"In scope checkbox: {row.in_scope}")
     row.comments = request.form['comments']
     row.rca = request.form['rca']
 
@@ -100,32 +100,36 @@ def delete_row(row_id):
 @app.route('/save_changes', methods=['POST'])
 def save_changes():
     edited_rows = request.form
-    logging.debug(f'Received form data: {edited_rows}')  # Log received form data
 
     for key in edited_rows:
         if key.startswith('incident_'):
             row_id = key.split('_')[1]
             row = Row.query.get_or_404(row_id)
 
-            row.incident = edited_rows[f'incident_{row_id}']
-            row.prep = edited_rows.get(f'prep_{row_id}', '')
+            incident = edited_rows[f'incident_{row_id}']
+            prep = edited_rows.get(f'prep_{row_id}', '')
+            assigned_to = edited_rows.get(f'assigned_to_{row_id}', '')
+            date = edited_rows[f'date_{row_id}']
+            in_scope = edited_rows.get(f'in_scope_{row_id}')
+            comments = edited_rows[f'comments_{row_id}']
+            rca = edited_rows[f'rca_{row_id}']
 
-            if f'assigned_to_{row_id}' in edited_rows:
-                row.assigned_to = edited_rows[f'assigned_to_{row_id}']
-                logging.debug(f'Assigned to for row {row_id}: {row.assigned_to}')
-            else:
-                logging.debug(f'Assigned to field not found for row {row_id}')
-
-            row.date = edited_rows[f'date_{row_id}']
-            row.in_scope = edited_rows.get(f'in_scope_{row_id}', 'No')
-            row.comments = edited_rows[f'comments_{row_id}']
-            row.rca = edited_rows[f'rca_{row_id}']
-
-            logging.debug(f'Saving row: {row.__dict__}')  # Log row data before saving
+            row.incident = incident
+            row.prep = prep
+            row.assigned_to = assigned_to
+            row.date = date
+            row.in_scope = in_scope
+            row.comments = comments
+            row.rca = rca
 
             db.session.commit()
 
+            app.logger.debug(f"In scope checkbox: {edited_rows.get(f'in_scope_{row_id}')}")
+
     return redirect(url_for('index'))
+
+
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

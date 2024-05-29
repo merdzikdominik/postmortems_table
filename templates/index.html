@@ -300,6 +300,8 @@
                     const prep = cells[1].textContent.trim();
                     const assignedTo = cells[2].textContent.trim();
                     const date = cells[3].textContent.trim();
+                    const inScopeCheckbox = cells[4].querySelector('input[type="checkbox"]');
+                    console.log(inScopeCheckbox);
                     const inScope = cells[4].textContent.trim();
                     const comments = cells[5].textContent.trim();
                     const rca = cells[6].textContent.trim();
@@ -351,8 +353,13 @@
                                 const name = input.name;
                                 if (input.tagName.toLowerCase() === 'select' && input.multiple) {
                                     rowData[name] = Array.from(input.selectedOptions).map(option => option.value).join(',');
+                                } else if (input.type === 'checkbox') {
+                                    rowData[name] = input.checked ? 'Yes' : 'No';
+                                    if (!input.checked) {
+                                        rowData[name] = 'No';
+                                    }
                                 } else {
-                                    rowData[name] = input.type === 'checkbox' ? input.checked : input.value;
+                                    rowData[name] = input.value;
                                 }
                             });
 
