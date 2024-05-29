@@ -29,7 +29,7 @@
                                 <th scope="col">Incident</th>
                                 <th scope="col">Prep</th>
                                 <th scope="col">Assigned To</th>
-                                <th scope="col">Date</th>
+                                <th scope="col">Issue Date</th>
                                 <th scope="col">In Scope</th>
                                 <th scope="col">Comments</th>
                                 <th scope="col">RCA</th>
@@ -42,7 +42,7 @@
                                     <td>{{ row.incident }}</td>
                                     <td>{{ row.prep }}</td>
                                     <td>{{ row.assigned_to }}</td>
-                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.issue_date }}</td>
                                     <td>{{ row.in_scope }}</td>
                                     <td>{{ row.comments }}</td>
                                     <td>{{ row.rca }}</td>
@@ -91,8 +91,8 @@
             </div>
             <!--      TODO: zamienic date na issue date      -->
             <div class="mt-4 mb-4">
-                <label for="date">Date:</label>
-                <input type="date" style="accent-color: #ff6200;" class="form-control" required id="date" name="date">
+                <label for="issue_date">Issue Date:</label>
+                <input type="date" style="accent-color: #ff6200;" class="form-control" required id="issue_date" name="issue_date">
             </div>
 
             <div class="col-sm-6">
@@ -161,7 +161,7 @@
                     <th scope="col">Incident</th>
                     <th scope="col">Prep</th>
                     <th scope="col">Assigned To</th>
-                    <th scope="col">Date</th>
+                    <th scope="col">Issue Date</th>
                     <th scope="col">In Scope</th>
                     <th scope="col">Comments</th>
                     <th scope="col">RCA</th>
@@ -174,7 +174,7 @@
                         <td>{{ row.incident }}</td>
                         <td>{{ row.prep }}</td>
                         <td>{{ row.assigned_to }}</td>
-                        <td>{{ row.date }}</td>
+                        <td>{{ row.issue_date }}</td>
                         <td>{{ row.in_scope }}</td>
                         <td>{{ row.comments }}</td>
                         <td>{{ row.rca }}</td>
@@ -315,7 +315,7 @@
                     const incident = cells[0].textContent.trim();
                     const prep = cells[1].textContent.trim();
                     const assignedTo = cells[2].textContent.trim();
-                    const date = cells[3].textContent.trim();
+                    const issue_date = cells[3].textContent.trim();
                     const inScope = cells[4].textContent.trim();
                     const comments = cells[5].textContent.trim();
                     const rca = cells[6].textContent.trim();
@@ -344,7 +344,7 @@
                     cells[0].innerHTML = `<input type="text" class="form-control" name="incident_${row.id}" value="${incident}" placeholder="${incident}">`;
                     cells[1].innerHTML = `<input type="text" class="form-control" name="prep_${row.id}" value="${prep}" placeholder="${prep}">`;
                     cells[2].innerHTML = `<select id="selectElement-${row.id}" class="form-control" name="assigned_to_${row.id}" multiple>${dropdownOptions}</select>`;
-                    cells[3].innerHTML = `<input type="date" class="form-control" name="date_${row.id}" value="${date}" placeholder="${date}">`;
+                    cells[3].innerHTML = `<input type="date" class="form-control" name="issue_date_${row.id}" value="${issue_date}" placeholder="${issue_date}">`;
                     cells[4].innerHTML = `<input type="checkbox" class="form-check-input" name="in_scope_${row.id}" ${inScope === 'Yes' ? 'checked' : ''}>`;
                     cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
                     cells[6].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
@@ -429,7 +429,7 @@
                                 selectedOptions.forEach(option => {
                                     assignedToSelect.appendChild(option.cloneNode(true));
                                 });
-                                cells[3].textContent = row.querySelector(`[name="date_${rowId}"]`).value;
+                                cells[3].textContent = row.querySelector(`[name="issue_date_${rowId}"]`).value;
                                 cells[4].textContent = row.querySelector(`[name="in_scope_${rowId}"]`).checked ? 'Yes' : 'No';
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
                                 cells[6].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
