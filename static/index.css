@@ -1,0 +1,5 @@
+.modal-center {
+    top: 40%;
+    right: 21%;
+    transform: translateY(-50%) !important;
+}

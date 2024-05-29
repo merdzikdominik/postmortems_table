@@ -5,14 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Postmortem - Gaps Identification</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='slimselect.css') }}">
 </head>
 <body>
     <button style="background-color: #ff6200;" class="w-100 btn text-light rounded-0" id="create-row-btn">Add Postmortem Info</button>
+    <button class=" w-100 btn btn-primary text-light rounded-0" id="edit-postmortem">Edit postmortem</button>
+    <!--  edit table modal  -->
+    <div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-center z-2" role="document">
+            <div style="width: 1150px;" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Edit postmortem</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table" id="rows-table-edit">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Incident</th>
+                                <th scope="col">Prep</th>
+                                <th scope="col">Assigned To</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">In Scope</th>
+                                <th scope="col">Comments</th>
+                                <th scope="col">RCA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr id="{{ row.id }}">
+                                    <th scope="row">{{ row.id }}</th>
+                                    <td>{{ row.incident }}</td>
+                                    <td>{{ row.prep }}</td>
+                                    <td>{{ row.assigned_to }}</td>
+                                    <td>{{ row.date }}</td>
+                                    <td>{{ row.in_scope }}</td>
+                                    <td>{{ row.comments }}</td>
+                                    <td>{{ row.rca }}</td>
+                                    <td>
+                                        <button class="btn btn-primary edit-row-btn">Edit</button>
+                                        <button class="btn btn-danger delete-row-btn">Delete</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-changes">Save changes</button>
+                </div>
+            </div>
+        </div>
+        <div style="height: 100%;" class="w-100 bg-secondary fixed-top z-1 opacity-25" id="modal-backdrop"></div>
+    </div>
 
+    <!--  main section  -->
     <div class="w-50 container d-flex-column justify-content-center">
-
         <h1 class="mt-3 mb-3">Postmortem Info</h1>
         <form id="row-form" method="POST">
+            {{ form.hidden_tag() }}
             <div class="mt-4 mb-4">
                 <label for="incident">Incident:</label>
                 <input type="text" class="form-control" required id="incident" name="incident" placeholder="Provide incident reference">
@@ -51,10 +107,30 @@
                 <textarea id="comments" class="form-control" name="comments" placeholder="Provide additional information if necessary"></textarea>
             </div>
 
-            <div class="mt-4 mb-4">
-                <label for="rca">Root Cause Analysis:</label>
-                <textarea class="form-control" id="rca" name="rca" placeholder="Provide Root Cause Analysis if necessary"></textarea>
+            <div class="mt-4 mb-4 d-flex flex-column gap-2">
+                <label>Root Cause Analysis</label>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Pick Root Cause</button>
+                    <div style="margin-top: 37px;" class="dropdown-menu w-100">
+                        <span class="dropdown-item">Caused by Change</span>
+                        <span class="dropdown-item">Data error</span>
+                        <span class="dropdown-item">Provider error</span>
+                        <span class="dropdown-item">Business User error</span>
+                        <span class="dropdown-item">Security - Access</span>
+                        <span class="dropdown-item">Security - Other</span>
+                        <span class="dropdown-item">Security - Lost/stolen</span>
+                        <span class="dropdown-item">Power failure</span>
+                        <span class="dropdown-item">Capacity issue</span>
+                        <span class="dropdown-item">Design issue</span>
+                        <span class="dropdown-item">External cause</span>
+                        <span class="dropdown-item">Application error</span>
+                        <span class="dropdown-item">Infrastructure error</span>
+                        <div class="dropdown-divider"></div>
+                        <span class="dropdown-item">Unknown</span>
+                    </div>
+                </div>
             </div>
+            <input type="hidden" id="rca" name="rca">
 
             <button style="background-color: #ff6200;" type="submit" class="w-100 btn text-light mb-4">Add info</button>
         </form>
@@ -91,7 +167,7 @@
             </tbody>
         </table>
     </div>
-
+    <script src="{{url_for('static', filename='slimselect.min.js')}}"></script>
     <script>
         const prepCheckbox = document.getElementById("prep_checkbox");
         const prepDate = document.getElementById("prep_date");
@@ -137,6 +213,199 @@
                     break;
             }
         });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const dropdownButton = document.querySelector(".dropdown-toggle");
+            const dropdownMenu = document.querySelector(".dropdown-menu");
+            const dropdownItems = document.querySelectorAll(".dropdown-item");
+
+            dropdownMenu.style.display = "none";
+
+            dropdownButton.addEventListener("click", () => {
+                if (dropdownMenu.style.display === "block") {
+                    dropdownMenu.style.display = "none";
+                } else {
+                    dropdownMenu.style.display = "block";
+                }
+            });
+
+            dropdownItems.forEach(item => {
+                item.addEventListener("click", () => {
+                    const selectedValue = item.textContent.trim();
+                    document.getElementById("rca").value = selectedValue;
+                    dropdownMenu.style.display = "none";
+                });
+            });
+
+            document.addEventListener("click", (event) => {
+                if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                    dropdownMenu.style.display = "none";
+                }
+            });
+
+            const editPostmortem = document.getElementById("edit-postmortem");
+            const modal = document.getElementById('exampleModal');
+            const modalBackdrop = document.getElementById('modal-backdrop');
+
+            modalBackdrop.style.display = "none";
+            modal.style.display = "none";
+
+            editPostmortem.addEventListener("click", () => {
+                if (modal.style.display === "none") {
+                    modal.style.display = "block";
+                    modalBackdrop.style.display = "block";
+
+                } else {
+                    modal.style.display = "none";
+                }
+            });
+
+            modalBackdrop.addEventListener("click", () => {
+                modal.style.display = "none";
+                modalBackdrop.style.display = "none";
+
+                location.reload()
+            });
+
+            document.querySelectorAll(".delete-row-btn").forEach(button => {
+                button.addEventListener("click", function() {
+                    const row = this.closest("tr");
+                    const rowId = row.getAttribute("id");
+
+                    fetch(`/delete_row/${rowId}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "X-CSRFToken": "{{ csrf_token() }}"
+                        },
+                    }).then(response => {
+                        if (response.ok) {
+                            row.remove();
+                        } else {
+                            console.error('Failed to delete the row.');
+                        }
+                    }).catch(error => console.error('Error:', error));
+                });
+            });
+
+            const editedRows = new Set();
+            let finalSelectedOptions = '';
+
+            document.querySelectorAll('.edit-row-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const row = this.closest('tr');
+                    const cells = row.querySelectorAll('td');
+
+                    const incident = cells[0].textContent.trim();
+                    const prep = cells[1].textContent.trim();
+                    const assignedTo = cells[2].textContent.trim();
+                    const date = cells[3].textContent.trim();
+                    const inScope = cells[4].textContent.trim();
+                    const comments = cells[5].textContent.trim();
+                    const rca = cells[6].textContent.trim();
+
+                    const availableAssignedToOptions = ['Option 1', 'Option 2', 'Option 3'];
+
+                    const dropdownOptions = availableAssignedToOptions.map(option => {
+                        return `<option value="${option}" ${assignedTo.includes(option) ? 'selected' : ''}>${option}</option>`;
+                    });
+
+                    cells[0].innerHTML = `<input type="text" class="form-control" name="incident_${row.id}" value="${incident}" placeholder="${incident}">`;
+                    cells[1].innerHTML = `<input type="text" class="form-control" name="prep_${row.id}" value="${prep}" placeholder="${prep}">`;
+                    cells[2].innerHTML = `<select id="selectElement-${row.id}" class="form-control" name="assigned_to_${row.id}" multiple>${dropdownOptions}</select>`;
+                    cells[3].innerHTML = `<input type="date" class="form-control" name="date_${row.id}" value="${date}" placeholder="${date}">`;
+                    cells[4].innerHTML = `<input type="checkbox" class="form-check-input" name="in_scope_${row.id}" ${inScope === 'Yes' ? 'checked' : ''}>`;
+                    cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
+                    cells[6].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
+
+                    new SlimSelect({
+                        select: `#selectElement-${row.id}`
+                    });
+
+                    const selectElement = cells[2].querySelector('select');
+
+                    selectElement.addEventListener('change', function() {
+                        const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
+                        finalSelectedOptions = selectedOptions.join(', ');
+                        console.log('Selected options:', finalSelectedOptions);
+                    });
+
+                    this.textContent = 'Editing...';
+                    this.disabled = true;
+
+                    editedRows.add(row.id);
+                });
+            });
+
+            const saveButton = document.getElementById('save-changes');
+
+            if (saveButton) {
+                saveButton.addEventListener('click', function() {
+                    const editedRowsData = [];
+                    const csrfToken = '{{ csrf_token() }}';
+
+                    document.querySelectorAll('tr[id]').forEach(row => {
+                        if (editedRows.has(row.id)) {
+                            const rowData = { id: row.id };
+                            row.querySelectorAll('input, textarea, select').forEach(input => {
+                                const name = input.name;
+                                if (input.tagName.toLowerCase() === 'select' && input.multiple) {
+                                    rowData[name] = Array.from(input.selectedOptions).map(option => option.value).join(',');
+                                } else {
+                                    rowData[name] = input.type === 'checkbox' ? input.checked : input.value;
+                                }
+                            });
+
+                            editedRowsData.push(rowData);
+                        }
+                    });
+
+                    const formData = new URLSearchParams();
+                    formData.append('csrf_token', csrfToken);
+
+                    editedRowsData.forEach((rowData) => {
+                        for (const key in rowData) {
+                            formData.append(`${key}`, rowData[key]);
+                        }
+                    });
+
+                    console.log('Form Data:', formData.toString());
+
+                    fetch(`/save_changes`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            "X-CSRFToken": csrfToken
+                        },
+                        body: formData.toString()
+                    }).then(response => {
+                        if (response.ok) {
+                            console.log('Changes saved successfully.');
+
+                            editedRows.forEach(rowId => {
+                                const row = document.getElementById(rowId);
+                                const cells = row.querySelectorAll('td');
+
+                                cells[0].textContent = row.querySelector(`[name="incident_${rowId}"]`).value;
+                                cells[1].textContent = row.querySelector(`[name="prep_${rowId}"]`).value;
+                                cells[2].textContent = finalSelectedOptions;
+                                cells[3].textContent = row.querySelector(`[name="date_${rowId}"]`).value;
+                                cells[4].textContent = row.querySelector(`[name="in_scope_${rowId}"]`).checked ? 'Yes' : 'No';
+                                cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
+                                cells[6].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
+
+                                console.log(finalSelectedOptions);
+                            });
+
+                            editedRows.clear();
+                        } else {
+                            console.error('Failed to save changes.');
+                        }
+                    }).catch(error => console.error('Error:', error));
+                });
+            }
+        });
+
     </script>
 </body>
 </html>
