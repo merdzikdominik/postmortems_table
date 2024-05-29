@@ -24,6 +24,7 @@ class RowForm(FlaskForm):
     in_scope = BooleanField('In Scope')
     comments = TextAreaField('Comments')
     rca = StringField('Root Cause Analysis')
+    identified_issue = StringField('Identified Issue', validators=[DataRequired()])
 
 
 class Row(db.Model):
@@ -37,8 +38,9 @@ class Row(db.Model):
     in_scope = db.Column(db.String)
     comments = db.Column(db.String)
     rca = db.Column(db.String)
+    identified_issue = db.Column(db.String)
 
-    def __init__(self, incident, prep, assigned_to, issue_date, in_scope, comments, rca):
+    def __init__(self, incident, prep, assigned_to, issue_date, in_scope, comments, rca, identified_issue):
         self.incident = incident
         self.prep = prep
         self.assigned_to = assigned_to
@@ -46,6 +48,7 @@ class Row(db.Model):
         self.in_scope = in_scope
         self.comments = comments
         self.rca = rca
+        self.identified_issue = identified_issue
 
 with app.app_context():
     db.create_all()
@@ -64,7 +67,8 @@ def index():
             issue_date=form.issue_date.data,
             in_scope=in_scope,
             comments=form.comments.data,
-            rca=form.rca.data
+            rca=form.rca.data,
+            identified_issue=form.identified_issue.data
         )
         db.session.add(new_row)
         db.session.commit()
@@ -80,9 +84,9 @@ def edit_row(row_id):
     row.assigned_to = request.form['assigned_to']
     row.issue_date = request.form['issue_date']
     row.in_scope = 'Yes' if request.form.get('in_scope') == 'true' else 'No'
-    app.logger.debug(f"In scope checkbox: {row.in_scope}")
     row.comments = request.form['comments']
     row.rca = request.form['rca']
+    row.identified_issue = request.form['identified_issue']
 
     db.session.commit()
 
@@ -112,6 +116,7 @@ def save_changes():
             in_scope = edited_rows.get(f'in_scope_{row_id}')
             comments = edited_rows[f'comments_{row_id}']
             rca = edited_rows[f'rca_{row_id}']
+            identified_issue = edited_rows[f'identified_issue_{row_id}']
 
             row.incident = incident
             row.prep = prep
@@ -120,13 +125,11 @@ def save_changes():
             row.in_scope = in_scope
             row.comments = comments
             row.rca = rca
+            row.identified_issue = identified_issue
 
             db.session.commit()
 
-            app.logger.debug(f"In scope checkbox: {edited_rows.get(f'in_scope_{row_id}')}")
-
     return redirect(url_for('index'))
-
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

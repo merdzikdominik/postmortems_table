@@ -32,6 +32,7 @@
                                 <th scope="col">Issue Date</th>
                                 <th scope="col">In Scope</th>
                                 <th scope="col">Comments</th>
+                                <th scope="col">Identified Issue</th>
                                 <th scope="col">RCA</th>
                             </tr>
                         </thead>
@@ -45,6 +46,7 @@
                                     <td>{{ row.issue_date }}</td>
                                     <td>{{ row.in_scope }}</td>
                                     <td>{{ row.comments }}</td>
+                                    <td>{{ row.identified_issue }}</td>
                                     <td>{{ row.rca }}</td>
                                     <td>
                                         <button class="btn btn-primary edit-row-btn">Edit</button>
@@ -107,6 +109,11 @@
                 <textarea id="comments" class="form-control" name="comments" placeholder="Provide additional information if necessary"></textarea>
             </div>
 
+            <div class="mt-4 mb-4">
+                <label for="identified_issue">Identified Issue:</label>
+                <textarea id="identified_issue" class="form-control" name="identified_issue" placeholder="Describe the identified issue"></textarea>
+            </div>
+
             <div class="mt-4 mb-4 d-flex flex-column gap-2">
                 <label>Root Cause Analysis</label>
                 <div class="btn-group">
@@ -164,6 +171,7 @@
                     <th scope="col">Issue Date</th>
                     <th scope="col">In Scope</th>
                     <th scope="col">Comments</th>
+                    <th scope="col">Identified Issue</th>
                     <th scope="col">RCA</th>
                 </tr>
             </thead>
@@ -177,6 +185,7 @@
                         <td>{{ row.issue_date }}</td>
                         <td>{{ row.in_scope }}</td>
                         <td>{{ row.comments }}</td>
+                        <td>{{ row.identified_issue }}</td>
                         <td>{{ row.rca }}</td>
                     </tr>
                 {% endfor %}
@@ -318,7 +327,8 @@
                     const issue_date = cells[3].textContent.trim();
                     const inScope = cells[4].textContent.trim();
                     const comments = cells[5].textContent.trim();
-                    const rca = cells[6].textContent.trim();
+                    const identified_issue = cells[6].textContent.trim();
+                    const rca = cells[7].textContent.trim();
 
                     const availableAssignedToOptions = [
                         'RaAd',
@@ -347,7 +357,8 @@
                     cells[3].innerHTML = `<input type="date" class="form-control" name="issue_date_${row.id}" value="${issue_date}" placeholder="${issue_date}">`;
                     cells[4].innerHTML = `<input type="checkbox" class="form-check-input" name="in_scope_${row.id}" ${inScope === 'Yes' ? 'checked' : ''}>`;
                     cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
-                    cells[6].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
+                    cells[6].innerHTML = `<input type="text" class="form-control" name="identified_issue_${row.id}" value="${identified_issue}" placeholder="${identified_issue}">`
+                    cells[7].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
 
                     new SlimSelect({
                         select: `#selectElement-${row.id}`
@@ -432,7 +443,8 @@
                                 cells[3].textContent = row.querySelector(`[name="issue_date_${rowId}"]`).value;
                                 cells[4].textContent = row.querySelector(`[name="in_scope_${rowId}"]`).checked ? 'Yes' : 'No';
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
-                                cells[6].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
+                                cells[6].textContent = row.querySelector(`[name="identified_issue_${rowId}"]`).value;
+                                cells[7].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
 
                                 console.log(finalSelectedOptions);
                             });
