@@ -91,7 +91,7 @@
                 <label for="assigned_to">Assigned To:</label>
                 <input type="text" class="form-control" required id="assigned_to" name="assigned_to" placeholder="eg. JoDo (John Doe)">
             </div>
-            <!--      TODO: zamienic date na issue date      -->
+
             <div class="mt-4 mb-4">
                 <label for="issue_date">Issue Date:</label>
                 <input type="date" style="accent-color: #ff6200;" class="form-control" required id="issue_date" name="issue_date">
@@ -112,6 +112,15 @@
             <div class="mt-4 mb-4">
                 <label for="identified_issue">Identified Issue:</label>
                 <textarea id="identified_issue" class="form-control" name="identified_issue" placeholder="Describe the identified issue"></textarea>
+            </div>
+
+            <div class="mt-4 mb-4">
+                <label for="addable">Choose identified issue or add new one</label>
+                <select class="form-control" name="addable" id="addable" multiple>
+                    <option value="value 1">Value 1</option>
+                    <option value="value 2">Value 2</option>
+                    <option value="value 3">Value 3</option>
+                </select>
             </div>
 
             <div class="mt-4 mb-4 d-flex flex-column gap-2">
@@ -225,11 +234,37 @@
                 case 'none':
                     document.getElementById("row-form").style.display = "block";
                     document.getElementsByTagName("h1")[0].style.display = "block";
+
+                    new SlimSelect({
+                        select: '#addable',
+                        data: [{'placeholder': true, 'text': 'Select identified issue'}],
+                        events: {
+                            addable: function (value) {
+                                if (value === 'bad') {return false}
+
+                                return value // Optional - value alteration // ex: value.toLowerCase()
+
+                                return {
+                                  text: value,
+                                  value: value.toLowerCase()
+                                }
+
+                                return new Promise((resolve) => {
+                                    resolve({
+                                        text: value,
+                                        value: value,
+                                    })
+                                })
+                            }
+                        }
+                    });
+
                     break;
 
                 case 'block':
                     document.getElementById("row-form").style.display = "none";
                     document.getElementsByTagName("h1")[0].style.display = "none";
+
                     break;
 
                 default:
