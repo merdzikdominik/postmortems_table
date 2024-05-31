@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect, FlaskForm
+from flask_cors import CORS
 from wtforms import StringField, BooleanField, DateField, TextAreaField, HiddenField
 from wtforms.validators import DataRequired
 import secrets
@@ -13,6 +14,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rows.db'
 db = SQLAlchemy(app)
 csrf = CSRFProtect(app)
 
+CORS(app)
 
 class RowForm(FlaskForm):
     csrf_token = HiddenField()
@@ -50,8 +52,17 @@ class Row(db.Model):
         self.rca = rca
         self.identified_issue = identified_issue
 
+
+class IdentifiedIssue(db.Model):
+    __tablename__ = 'identified_issues'
+
+    id = db.Column(db.Integer, primary_key=True)
+    identified_issue = db.Column(db.String(255))
+
+
 with app.app_context():
     db.create_all()
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -131,6 +142,28 @@ def save_changes():
             db.session.commit()
 
     return redirect(url_for('index'))
+
+@app.route('/get_issues', methods=['GET'])
+def get_issues():
+    issues = IdentifiedIssue.query.all()
+    return jsonify([{'text': issue.identified_issue} for issue in issues])
+
+@app.route('/add_option', methods=['POST'])
+def add_option():
+    data = request.json
+    value = data.get('value')
+    if value:
+        # Check if the value already exists
+        existing_issue = IdentifiedIssue.query.filter_by(identified_issue=value).first()
+        if existing_issue:
+            return jsonify({'message': 'Issue already exists'}), 400
+        # Add new value
+        new_issue = IdentifiedIssue(identified_issue=value)
+        db.session.add(new_issue)
+        db.session.commit()
+        return jsonify({'message': 'Issue added successfully'}), 201
+    return jsonify({'message': 'Invalid data'}), 400
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

@@ -112,9 +112,7 @@
             <div class="mt-4 mb-4">
                 <label for="identified_issue">Choose identified issue or add new one</label>
                 <select class="form-control" id="identified_issue" name="identified_issue" multiple>
-                    <option value="value 1">Value 1</option>
-                    <option value="value 2">Value 2</option>
-                    <option value="value 3">Value 3</option>
+
                 </select>
             </div>
 
@@ -230,40 +228,41 @@
                     document.getElementById("row-form").style.display = "block";
                     document.getElementsByTagName("h1")[0].style.display = "block";
 
-                    new SlimSelect({
-                        select: '#identified_issue',
-                        data: [
-                            {
-                                label: 'Animals',
-                                 options: [
-                                     {text: 'Cat'},
-                                     {text: 'Dog'},
-                                     {text: 'Bird'}
-                                 ],
-                                'placeholder': true,
-                                'text': 'Select identified issue'
-                            }
-                        ],
-                        events: {
-                            addable: function (value) {
-                                if (value === 'bad') {return false}
-
-                                return value
-
-                                return {
-                                  text: value,
-                                  value: value.toLowerCase()
+                    fetch('/get_issues')
+                    .then(response => response.json())
+                    .then(data => {
+                        const slimSelect = new SlimSelect({
+                            select: '#identified_issue',
+                            data: data.map(issue => ({ text: issue.text })),
+                            events: {
+                                addable: function (value) {
+                                    return new Promise((resolve, reject) => {
+                                        fetch('http://localhost:5000/add_option', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            },
+                                            body: JSON.stringify({ value: value })
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.message === 'Issue added successfully') {
+                                                resolve({ text: value });
+                                            } else {
+                                                reject(data.message);
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('Error:', error);
+                                            reject(error);
+                                        });
+                                    });
                                 }
-
-                                return new Promise((resolve) => {
-                                    resolve({
-                                        text: value,
-                                        value: value,
-                                    })
-                                })
                             }
-                        }
-                    });
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+
 
                     break;
 
@@ -324,18 +323,6 @@
                 const formData = new FormData(form);
                 formData.append('identified_issue', selectedIssues);
 
-                fetch('/', {
-                    method: 'POST',
-                    body: formData // Przesyła dane na serwer
-                })
-                .then(response => {
-                    if (response.ok) {
-                        return
-                    } else {
-                        console.error('Unable to send identified issue.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
             });
 
             const editPostmortem = document.getElementById("edit-postmortem");
