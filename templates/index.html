@@ -69,7 +69,7 @@
     <!--  main section  -->
     <div class="w-50 container d-flex-column justify-content-center">
         <h1 class="mt-3 mb-3">Postmortem Info</h1>
-        <form id="row-form" method="POST">
+        <form id="row-form" method="POST" action="/">
             {{ form.hidden_tag() }}
             <div class="mt-4 mb-4">
                 <label for="incident">Incident:</label>
@@ -110,13 +110,8 @@
             </div>
 
             <div class="mt-4 mb-4">
-                <label for="identified_issue">Identified Issue:</label>
-                <textarea id="identified_issue" class="form-control" name="identified_issue" placeholder="Describe the identified issue"></textarea>
-            </div>
-
-            <div class="mt-4 mb-4">
-                <label for="addable">Choose identified issue or add new one</label>
-                <select class="form-control" name="addable" id="addable" multiple>
+                <label for="identified_issue">Choose identified issue or add new one</label>
+                <select class="form-control" id="identified_issue" name="identified_issue" multiple>
                     <option value="value 1">Value 1</option>
                     <option value="value 2">Value 2</option>
                     <option value="value 3">Value 3</option>
@@ -148,7 +143,7 @@
             </div>
             <input type="hidden" id="rca" name="rca">
 
-            <button style="background-color: #ff6200;" type="submit" class="w-100 btn text-light mb-4">Add info</button>
+            <button style="background-color: #ff6200;" type="submit" id="submit" class="w-100 btn text-light mb-4">Add info</button>
         </form>
     </div>
 
@@ -236,13 +231,24 @@
                     document.getElementsByTagName("h1")[0].style.display = "block";
 
                     new SlimSelect({
-                        select: '#addable',
-                        data: [{'placeholder': true, 'text': 'Select identified issue'}],
+                        select: '#identified_issue',
+                        data: [
+                            {
+                                label: 'Animals',
+                                 options: [
+                                     {text: 'Cat'},
+                                     {text: 'Dog'},
+                                     {text: 'Bird'}
+                                 ],
+                                'placeholder': true,
+                                'text': 'Select identified issue'
+                            }
+                        ],
                         events: {
                             addable: function (value) {
                                 if (value === 'bad') {return false}
 
-                                return value // Optional - value alteration // ex: value.toLowerCase()
+                                return value
 
                                 return {
                                   text: value,
@@ -270,6 +276,7 @@
                 default:
                     document.getElementById("row-form").style.display = "none";
                     document.getElementsByTagName("h1")[0].style.display = "none";
+
                     break;
             }
         });
@@ -301,6 +308,34 @@
                 if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
                     dropdownMenu.style.display = "none";
                 }
+            });
+
+            const form = document.getElementById("row-form");
+
+            form.addEventListener("submit", (event) => {
+                event.preventDefault();
+
+                const identifiedIssueSelect = document.getElementById("identified_issue");
+                const selectedOptions = Array.from(identifiedIssueSelect.selectedOptions).map(option => option.value);
+                const selectedIssues = selectedOptions.join(', ');
+
+                document.getElementById("identified_issue").value = selectedIssues;
+
+                const formData = new FormData(form);
+                formData.append('identified_issue', selectedIssues);
+
+                fetch('/', {
+                    method: 'POST',
+                    body: formData // Przesyła dane na serwer
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return
+                    } else {
+                        console.error('Unable to send identified issue.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
             });
 
             const editPostmortem = document.getElementById("edit-postmortem");
@@ -480,8 +515,6 @@
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
                                 cells[6].textContent = row.querySelector(`[name="identified_issue_${rowId}"]`).value;
                                 cells[7].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
-
-                                console.log(finalSelectedOptions);
                             });
 
                             editedRows.clear();

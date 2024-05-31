@@ -56,6 +56,7 @@ with app.app_context():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = RowForm()
+
     if request.method == 'POST':
         prep = f"Yes {form.prep_date.data}" if form.prep_checkbox.data else "No"
         in_scope = "Yes" if form.in_scope.data else "No"
@@ -68,7 +69,7 @@ def index():
             in_scope=in_scope,
             comments=form.comments.data,
             rca=form.rca.data,
-            identified_issue=form.identified_issue.data
+            identified_issue=request.form.get('identified_issue')
         )
         db.session.add(new_row)
         db.session.commit()
