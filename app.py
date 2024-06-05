@@ -5,7 +5,6 @@ from wtforms import StringField, BooleanField, DateField, TextAreaField, HiddenF
 from wtforms.validators import DataRequired
 import secrets
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///rows.db'
@@ -77,8 +76,10 @@ class Row(db.Model):
         self.rca = rca
         self.identified_issue = identified_issue
 
+
 with app.app_context():
     db.create_all()
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -105,24 +106,11 @@ def index():
 
         IdentifiedIssue.add_issues(identified_issues)
 
-    rows = Row.query.all()
+    page = request.args.get('page', 1, type=int)
+    rows = Row.query.paginate(page=page, per_page=ROWS_PER_PAGE)
 
     return render_template('index.html', rows=rows, form=form)
 
-def edit_row(row_id):
-    row = Row.query.get_or_404(row_id)
-    row.incident = request.form['incident']
-    row.prep = request.form['prep']
-    row.assigned_to = request.form['assigned_to']
-    row.issue_date = request.form['issue_date']
-    row.in_scope = 'Yes' if request.form.get('in_scope') == 'true' else 'No'
-    row.comments = request.form['comments']
-    row.rca = request.form['rca']
-    row.identified_issue = request.form['identified_issue']
-
-    db.session.commit()
-
-    return redirect(url_for('index'))
 
 @app.route('/delete_row/<int:row_id>', methods=['POST'])
 def delete_row(row_id):
@@ -131,6 +119,7 @@ def delete_row(row_id):
     db.session.commit()
 
     return redirect(url_for('index'))
+
 
 @app.route('/save_changes', methods=['POST'])
 def save_changes():
@@ -163,10 +152,12 @@ def save_changes():
 
     return redirect(url_for('index'))
 
+
 @app.route('/get_issues', methods=['GET'])
 def get_issues():
     issues = IdentifiedIssue.query.all()
     return jsonify([{'text': issue.identified_issue} for issue in issues])
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)

@@ -67,7 +67,7 @@
     </div>
 
     <!--  main section  -->
-<div class="w-50 container d-flex-column justify-content-center">
+    <div class="w-50 container d-flex-column justify-content-center">
         <h1 class="mt-3 mb-3">Postmortem Info</h1>
         <form id="row-form" method="POST" action="/">
             {{ form.hidden_tag() }}
@@ -195,6 +195,27 @@
                 {% endfor %}
             </tbody>
         </table>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li class="page-item {% if not rows.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('index', page=rows.prev_num) }}">Previous</a>
+                </li>
+                {% for page_num in rows.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == rows.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">...</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not rows.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('index', page=rows.next_num) }}">Next</a>
+                </li>
+            </ul>
+        </nav>
     </div>
     <script src="{{url_for('static', filename='slimselect.min.js')}}"></script>
     <script>
