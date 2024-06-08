@@ -197,13 +197,13 @@
         </table>
         <nav aria-label="Page navigation">
             <ul class="pagination">
-                <li class="page-item {% if not rows.has_prev %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('index', page=rows.prev_num) }}">Previous</a>
+                <li class="page-item" id="previousPage">
+                    <a class="page-link" href="#">Previous</a>
                 </li>
                 {% for page_num in rows.iter_pages() %}
                     {% if page_num %}
                         <li class="page-item {% if page_num == rows.page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a>
+                            <a class="page-link" id="page{{ page_num }}" href="#">{{ page_num }}</a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
@@ -211,8 +211,8 @@
                         </li>
                     {% endif %}
                 {% endfor %}
-                <li class="page-item {% if not rows.has_next %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('index', page=rows.next_num) }}">Next</a>
+                <li class="page-item" id="nextPage">
+                    <a class="page-link" href="#">Next</a>
                 </li>
             </ul>
         </nav>
@@ -554,23 +554,156 @@
             }
 
             const filterInput = document.getElementById("userFilter");
+            const prevPageBtn = document.getElementById("previousPage");
+            const nextPageBtn = document.getElementById("nextPage");
+            const rowsPerPage = 10;
+            let currentPage = 1;
+            let totalPages = 0;
 
-            filterInput.addEventListener("keyup", function() {
+            async function fetchRows(filter = '', page = 1) {
+                const response = await fetch(`/get_rows?filter=${filter}&page=${page}&rows_per_page=${rowsPerPage}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Unable to fetch rows.');
+                    return { rows: [], total: 0 };
+                }
+
+                const data = await response.json();
+                totalPages = data.pages;
+                return data.rows;
+            }
+
+            function displayRows(rows) {
+                const tableBody = document.querySelector("#rows-table tbody");
+                tableBody.innerHTML = ''; // Clear current rows
+
+                rows.forEach((row) => {
+                    const rowElement = document.createElement('tr');
+                    rowElement.innerHTML = `
+                        <td>${row.id}</td>
+                        <td>${row.incident}</td>
+                        <td>${row.prep}</td>
+                        <td>${row.assigned_to}</td>
+                        <td>${row.issue_date}</td>
+                        <td>${row.in_scope}</td>
+                        <td>${row.comments}</td>
+                        <td>${row.rca}</td>
+                        <td>${row.identified_issue}</td>
+                    `;
+                    tableBody.appendChild(rowElement);
+                });
+            }
+
+            function updatePaginationButtons() {
+                if (currentPage === 1) {
+                    prevPageBtn.classList.add('disabled');
+                } else {
+                    prevPageBtn.classList.remove('disabled');
+                }
+
+                if (currentPage === totalPages) {
+                    nextPageBtn.classList.add('disabled');
+                } else {
+                    nextPageBtn.classList.remove('disabled');
+                }
+            }
+
+            async function filterRows() {
                 const filterValue = filterInput.value.toLowerCase();
-                const tableRows = document.querySelectorAll("#rows-table tbody tr");
+                currentPage = 1;
+                const rows = await fetchRows(filterValue, currentPage);
+                displayRows(rows);
+                updatePaginationButtons();
+            }
 
-                tableRows.forEach(row => {
-                    const assignedToCell = row.querySelector("td:nth-child(4)");
-                    if (assignedToCell) {
-                        const cellText = assignedToCell.textContent.toLowerCase();
-                        if (cellText.includes(filterValue)) {
-                            row.style.display = "";
-                        } else {
-                            row.style.display = "none";
+            filterInput.addEventListener("keyup", filterRows);
+
+            document.querySelectorAll('.page-link').forEach((pageBtn) => {
+                pageBtn.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const targetPageText = event.target.innerText.trim();
+                    const targetPage = parseInt(targetPageText);
+
+                    if (!isNaN(targetPage)) {
+                        if (targetPage !== currentPage) {
+                            currentPage = targetPage;
+                            const filterValue = filterInput.value.toLowerCase();
+                            const rows = await fetchRows(filterValue, currentPage);
+                            displayRows(rows);
+
+                            document.querySelectorAll('.page-item').forEach((item) => {
+                                item.classList.remove('active');
+                            });
+
+                            if (event.target.parentElement) {
+                                event.target.parentElement.classList.add('active');
+                            } else {
+                                console.error("Parent element does not exist.");
+                            }
+
+                            updatePaginationButtons();
                         }
                     }
                 });
             });
+
+            prevPageBtn.addEventListener("click", async (event) => {
+                event.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    const filterValue = filterInput.value.toLowerCase();
+                    const rows = await fetchRows(filterValue, currentPage);
+                    displayRows(rows);
+
+                    document.querySelectorAll('.page-item').forEach((item) => {
+                        item.classList.remove('active');
+                    });
+
+                    const prevPageElement = document.getElementById(`page${currentPage}`);
+                    if (prevPageElement) {
+                        prevPageElement.parentElement.classList.add('active');
+                    } else {
+                        console.error(`Element with id 'page${currentPage}' does not exist.`);
+                    }
+
+                    updatePaginationButtons();
+                }
+            });
+
+            nextPageBtn.addEventListener("click", async (event) => {
+                event.preventDefault();
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    const filterValue = filterInput.value.toLowerCase();
+                    const rows = await fetchRows(filterValue, currentPage);
+                    displayRows(rows);
+
+                    document.querySelectorAll('.page-item').forEach((item) => {
+                        item.classList.remove('active');
+                    });
+
+                    const nextPageElement = document.getElementById(`page${currentPage}`);
+                    if (nextPageElement) {
+                        nextPageElement.parentElement.classList.add('active');
+                    } else {
+                        console.error(`Element with id 'page${currentPage}' does not exist.`);
+                    }
+
+                    updatePaginationButtons();
+                }
+            });
+
+            (async () => {
+                const rows = await fetchRows();
+                displayRows(rows);
+                updatePaginationButtons();
+            })();
+
         });
 
     </script>

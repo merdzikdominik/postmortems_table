@@ -158,6 +158,40 @@ def get_issues():
     issues = IdentifiedIssue.query.all()
     return jsonify([{'text': issue.identified_issue} for issue in issues])
 
+@app.route('/get_rows', methods=['GET'])
+def get_rows():
+    filter_value = request.args.get('filter', '', type=str)
+    page = request.args.get('page', 1, type=int)
+    rows_per_page = request.args.get('rows_per_page', 10, type=int)
+
+    query = Row.query
+    if filter_value:
+        query = query.filter(Row.assigned_to.ilike(f'%{filter_value}%'))
+
+    pagination = query.paginate(page=page, per_page=rows_per_page, error_out=False)
+    rows = pagination.items
+
+    return jsonify({
+        'rows': [
+            {
+                'id': row.id,
+                'incident': row.incident,
+                'prep': row.prep,
+                'assigned_to': row.assigned_to,
+                'issue_date': row.issue_date,
+                'in_scope': row.in_scope,
+                'comments': row.comments,
+                'rca': row.rca,
+                'identified_issue': row.identified_issue
+            } for row in rows
+        ],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': pagination.page,
+        'has_next': pagination.has_next,
+        'has_prev': pagination.has_prev
+    })
+
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
