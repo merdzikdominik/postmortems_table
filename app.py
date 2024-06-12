@@ -161,6 +161,7 @@ def get_issues():
 @app.route('/get_rows', methods=['GET'])
 def get_rows():
     filter_value = request.args.get('filter', '', type=str)
+    assigned_to_values = request.args.get('assigned_to', '', type=str).split(',')
     page = request.args.get('page', 1, type=int)
     rows_per_page = request.args.get('rows_per_page', 10, type=int)
 
@@ -172,6 +173,8 @@ def get_rows():
                 Row.incident.ilike(f'%{filter_value}%')
             )
         )
+    if assigned_to_values and assigned_to_values != ['']:
+        query = query.filter(Row.assigned_to.in_(assigned_to_values))
 
     pagination = query.paginate(page=page, per_page=rows_per_page, error_out=False)
     rows = pagination.items
@@ -196,7 +199,6 @@ def get_rows():
         'has_next': pagination.has_next,
         'has_prev': pagination.has_prev
     })
-
 
 
 if __name__ == "__main__":

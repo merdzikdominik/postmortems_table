@@ -89,7 +89,9 @@
 
             <div class="mt-4 mb-4">
                 <label for="assigned_to">Assigned To:</label>
-                <input type="text" class="form-control" required id="assigned_to" name="assigned_to" placeholder="eg. JoDo (John Doe)">
+                <select class="form-control" id="assigned_to" name="assigned_to" multiple>
+
+                </select>
             </div>
 
             <div class="mt-4 mb-4">
@@ -112,9 +114,6 @@
             <div class="mt-4 mb-4">
                 <label for="identified_issue">Choose identified issue or add new one</label>
                 <select class="form-control" id="identified_issue" name="identified_issue" multiple>
-                    <option value="value 1">Value 1</option>
-                    <option value="value 2">Value 2</option>
-                    <option value="value 3">Value 3</option>
                 </select>
             </div>
 
@@ -338,10 +337,16 @@
                 const selectedOptions = Array.from(identifiedIssueSelect.selectedOptions).map(option => option.value);
                 const selectedIssues = selectedOptions.join(', ');
 
+                const employeesSelect = document.getElementById('assigned_to');
+                const selectedEmployees = Array.from(employeesSelect.selectedOptions).map(option => option.value);
+                const selectedUsers = selectedEmployees.join(', ')
+
                 document.getElementById('identified_issue').value = selectedIssues;
+                document.getElementById('assigned_to').value = selectedUsers;
 
                 const formData = new FormData(event.target);
                 formData.append('identified_issue', selectedIssues);
+                formData.append('assigned_to', selectedUsers);
 
                 fetch('/', {
                     method: 'POST',
@@ -552,6 +557,48 @@
                     }).catch(error => console.error('Error:', error));
                 });
             }
+
+            new SlimSelect({
+                select: '#assigned_to',
+                data: [
+                    {
+                        label: 'Assigned To',
+                        options: [
+                            { text: 'RaAd', value: 'RaAd' },
+                            { text: 'JaBe', value: 'JaBe' },
+                            { text: 'PiCz', value: 'PiCz' },
+                            { text: 'ZuDą', value: 'ZuDą' },
+                            { text: 'AdGo', value: 'AdGo' },
+                            { text: 'ArIr', value: 'ArIr' },
+                            { text: 'GrKo', value: 'GrKo' },
+                            { text: 'KrLa', value: 'KrLa' },
+                            { text: 'MiŁu', value: 'MiŁu' },
+                            { text: 'DoMe', value: 'DoMe' },
+                            { text: 'MaSi', value: 'MaSi' },
+                            { text: 'ToWi', value: 'ToWi' },
+                            { text: 'RaZa', value: 'RaZa' },
+                            { text: 'MaZi', value: 'MaZi' }
+                        ],
+                        placeholder: true,
+                        text: 'Select assigned to'
+                    }
+                ],
+                events: {
+                    addable: function (value) {
+                        if (value === 'bad') {
+                            return false;
+                        }
+
+                        // Optionally, add the new value to the database here
+                        // ...
+
+                        return {
+                            text: value,
+                            value: value.toLowerCase()
+                        };
+                    }
+                }
+            });
 
             const filterInput = document.getElementById("userFilter");
             const prevPageBtn = document.getElementById("previousPage");
