@@ -619,6 +619,17 @@
                 const rows = await fetchRows(filterValue, currentPage);
                 displayRows(rows);
                 updatePaginationButtons();
+
+                document.querySelectorAll('.page-item').forEach((item) => {
+                    item.classList.remove('active');
+                });
+
+                const firstPageElement = document.getElementById(`page${currentPage}`);
+                if (firstPageElement) {
+                    firstPageElement.parentElement.classList.add('active');
+                } else {
+                    console.error(`Element with id 'page${currentPage}' does not exist.`);
+                }
             }
 
             filterInput.addEventListener("keyup", filterRows);
