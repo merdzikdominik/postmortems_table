@@ -166,7 +166,12 @@ def get_rows():
 
     query = Row.query
     if filter_value:
-        query = query.filter(Row.assigned_to.ilike(f'%{filter_value}%'))
+        query = query.filter(
+            db.or_(
+                Row.assigned_to.ilike(f'%{filter_value}%'),
+                Row.incident.ilike(f'%{filter_value}%')
+            )
+        )
 
     pagination = query.paginate(page=page, per_page=rows_per_page, error_out=False)
     rows = pagination.items
@@ -191,6 +196,7 @@ def get_rows():
         'has_next': pagination.has_next,
         'has_prev': pagination.has_prev
     })
+
 
 
 if __name__ == "__main__":
