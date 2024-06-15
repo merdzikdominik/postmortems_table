@@ -15,13 +15,24 @@
     <div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-center z-2" role="document">
             <div style="width: 1150px;" class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Edit postmortem</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                <div class="modal-header container text-center">
+                    <div class="row">
+                        <div class="col text-start equal-width">
+                            <h2 class="mt-4 mb-4">Edit postmortem</h2>
+                        </div>
+                        <div class="col equal-width">
+                            <div class="input-group mb-3 mt-4 input-group-custom">
+                                <span class="input-group-text" id="basic-addon2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-funnel" viewBox="0 0 16 16">
+                                        <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5zm1 .5v1.308l4.372 4.858A.5.5 0 0 1 7 8.5v5.306l2-.666V8.5a.5.5 0 0 1 .128-.334L13.5 3.308V2z"/>
+                                    </svg>
+                                </span>
+                                <input type="text" id="userFilterEdit" class="form-control" placeholder="Filter for incident or user" aria-label="Username" aria-describedby="basic-addon2">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
                     <table class="table" id="rows-table-edit">
                         <thead>
                             <tr>
@@ -37,7 +48,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for row in rows %}
+                            {% for row in all_rows %}
                                 <tr id="{{ row.id }}">
                                     <th scope="row">{{ row.id }}</th>
                                     <td>{{ row.incident }}</td>
@@ -253,7 +264,6 @@
                     fetch('/get_issues')
                         .then(response => response.json())
                         .then(data => {
-                            // Initialize SlimSelect with fetched data
                             new SlimSelect({
                                 select: '#identified_issue',
                                 data: [
@@ -269,9 +279,6 @@
                                         if (value === 'bad') {
                                             return false;
                                         }
-
-                                        // Optionally, add the new value to the database here
-                                        // ...
 
                                         return {
                                             text: value,
@@ -589,9 +596,6 @@
                             return false;
                         }
 
-                        // Optionally, add the new value to the database here
-                        // ...
-
                         return {
                             text: value,
                             value: value.toLowerCase()
@@ -762,6 +766,21 @@
                 updatePaginationButtons();
             })();
 
+            document.getElementById('userFilterEdit').addEventListener('input', function() {
+                const filter = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#rows-table-edit tbody tr');
+
+                rows.forEach(row => {
+                    const incident = row.cells[1].textContent.toLowerCase();
+                    const assignedTo = row.cells[3].textContent.toLowerCase();
+
+                    if (incident.includes(filter) || assignedTo.includes(filter)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
         });
 
     </script>

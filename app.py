@@ -108,8 +108,9 @@ def index():
 
     page = request.args.get('page', 1, type=int)
     rows = Row.query.paginate(page=page, per_page=ROWS_PER_PAGE)
+    all_rows = Row.query.all()
 
-    return render_template('index.html', rows=rows, form=form)
+    return render_template('index.html', rows=rows, all_rows=all_rows, form=form)
 
 
 @app.route('/delete_row/<int:row_id>', methods=['POST'])
