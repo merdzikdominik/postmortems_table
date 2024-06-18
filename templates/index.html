@@ -11,6 +11,7 @@
 <body>
     <button style="background-color: #ff6200;" class="w-100 btn text-light rounded-0" id="create-row-btn">Add Postmortem Info</button>
     <button class=" w-100 btn btn-primary text-light rounded-0" id="edit-postmortem">Edit postmortem</button>
+    <button class=" w-100 btn btn-success text-light rounded-0" id="excel-export">Export data to excel</button>
     <!--  edit table modal  -->
     <div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-center z-2" role="document">
@@ -238,6 +239,7 @@
         </nav>
     </div>
     <script src="{{url_for('static', filename='slimselect.min.js')}}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         const prepCheckbox = document.getElementById("prep_checkbox");
         const prepDate = document.getElementById("prep_date");
@@ -827,6 +829,30 @@
                         row.style.display = 'none';
                     }
                 });
+            });
+
+            document.getElementById("excel-export").addEventListener("click", function() {
+                const tableData = [];
+
+                const headers = [];
+                document.querySelectorAll("#rows-table thead th").forEach(th => {
+                    headers.push(th.innerText);
+                });
+                tableData.push(headers);
+
+                document.querySelectorAll("#rows-table tbody tr").forEach(tr => {
+                    const rowData = [];
+                    tr.querySelectorAll("td").forEach(td => {
+                        rowData.push(td.innerText);
+                    });
+                    tableData.push(rowData);
+                });
+
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(tableData);
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+                XLSX.writeFile(wb, "data_export.xlsx");
             });
         });
 
