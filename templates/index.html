@@ -532,7 +532,7 @@
                     cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
                     cells[6].innerHTML = `<input type="text" class="form-control" name="identified_issue_${row.id}" value="${identified_issue}" placeholder="${identified_issue}">`
                     cells[7].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
-                    cells[8].innerHTML = `<select id="technologySelect-${row.id}" class="form-control" name="technology_${row.id}">${technologyOptions} multiple</select>`;
+                    cells[8].innerHTML = `<select id="technologySelect-${row.id}" class="form-control" name="technology_${row.id}" multiple>${technologyOptions}</select>`;
 
                     new SlimSelect({
                         select: `#selectElement-${row.id}`
@@ -630,7 +630,12 @@
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
                                 cells[6].textContent = row.querySelector(`[name="identified_issue_${rowId}"]`).value;
                                 cells[7].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
-                                cells[8].textContent = row.querySelector(`[name="technology_${rowId}"]`).value;
+                                // cells[8].textContent = row.querySelector(`[name="technology_${rowId}"]`).value;
+                                const technologiesSelect = document.createElement('select');
+                                const selectedTechnologyOptions = Array.from(row.querySelectorAll(`[name="technology_${rowId}"] option[selected]`));
+                                selectedTechnologyOptions.forEach(option => {
+                                    technologiesSelect.appendChild(option.cloneNode(true));
+                                });
                             });
 
                             editedRows.clear();
