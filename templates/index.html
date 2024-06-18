@@ -347,7 +347,7 @@
             }
         });
 
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
             const dropdownButton = document.querySelector(".dropdown-toggle");
             const dropdownMenu = document.querySelector(".dropdown-menu");
             const dropdownItems = document.querySelectorAll(".dropdown-item");
@@ -467,6 +467,21 @@
             const editedRows = new Set();
             let finalSelectedOptions = '';
 
+            let availableTechnologies = [];
+            try {
+                const response = await fetch('/get_technologies');
+                availableTechnologies = await response.json();
+            } catch (error) {
+                console.error('Error fetching technologies:', error);
+            }
+
+            if (!Array.isArray(availableTechnologies)) {
+                console.error('Fetched technologies are not an array:', availableTechnologies);
+                availableTechnologies = [];
+            }
+
+            console.log(availableTechnologies)
+
             document.querySelectorAll('.edit-row-btn').forEach(button => {
                 button.addEventListener('click', function() {
                     const row = this.closest('tr');
@@ -503,6 +518,12 @@
                         return `<option value="${option}" ${assignedTo.includes(option) ? 'selected' : ''}>${option}</option>`;
                     });
 
+                    const technologyOptions = availableTechnologies.map(option => {
+                        return `<option value="${option.text}" ${technology.includes(option.text) ? 'selected' : ''}>${option.text}</option>`;
+                    });
+
+                    console.log(technologyOptions)
+
                     cells[0].innerHTML = `<input type="text" class="form-control" name="incident_${row.id}" value="${incident}" placeholder="${incident}">`;
                     cells[1].innerHTML = `<input type="text" class="form-control" name="prep_${row.id}" value="${prep}" placeholder="${prep}">`;
                     cells[2].innerHTML = `<select id="selectElement-${row.id}" class="form-control" name="assigned_to_${row.id}" multiple>${dropdownOptions}</select>`;
@@ -511,19 +532,30 @@
                     cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
                     cells[6].innerHTML = `<input type="text" class="form-control" name="identified_issue_${row.id}" value="${identified_issue}" placeholder="${identified_issue}">`
                     cells[7].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
-                    cells[8].innerHTML = `<input type="text" class="form-control" name="technology_${row.id}" value="${technology}" placeholder="${technology}">`;
+                    cells[8].innerHTML = `<select id="technologySelect-${row.id}" class="form-control" name="technology_${row.id}">${technologyOptions} multiple</select>`;
 
                     new SlimSelect({
                         select: `#selectElement-${row.id}`
                     });
 
+                    new SlimSelect({
+                        select: `#technologySelect-${row.id}`
+                    });
+
                     const selectElement = cells[2].querySelector('select');
+                    const selectTechs = cells[8].querySelector('select');
 
                     selectElement.addEventListener('change', function() {
                         const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
                         finalSelectedOptions = selectedOptions.join(', ');
                         console.log('Selected options:', finalSelectedOptions);
                     });
+
+                    selectTechs.addEventListener('change', function() {
+                        const selectedTechs = Array.from(selectTechs.selectedOptions).map(option => option.value);
+                        const finalSelectedTechs = selectedTechs.join(', ');
+                        console.log('Selected options:', finalSelectedTechs);
+                    })
 
                     this.style.display = 'none';
 
