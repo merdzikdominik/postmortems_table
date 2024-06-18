@@ -170,6 +170,7 @@ def save_changes():
             comments = edited_rows[f'comments_{row_id}']
             rca = edited_rows[f'rca_{row_id}']
             identified_issue = edited_rows[f'identified_issue_{row_id}']
+            technology = edited_rows[f'technology_{row_id}']
 
             row.incident = incident
             row.prep = prep
@@ -179,6 +180,7 @@ def save_changes():
             row.comments = comments
             row.rca = rca
             row.identified_issue = identified_issue
+            row.technology = technology
 
             db.session.commit()
 

@@ -480,6 +480,7 @@
                     const comments = cells[5].textContent.trim();
                     const identified_issue = cells[6].textContent.trim();
                     const rca = cells[7].textContent.trim();
+                    const technology = cells[8].textContent.trim();
 
                     const availableAssignedToOptions = [
                         'RaAd',
@@ -510,6 +511,7 @@
                     cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
                     cells[6].innerHTML = `<input type="text" class="form-control" name="identified_issue_${row.id}" value="${identified_issue}" placeholder="${identified_issue}">`
                     cells[7].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
+                    cells[8].innerHTML = `<input type="text" class="form-control" name="technology_${row.id}" value="${technology}" placeholder="${technology}">`;
 
                     new SlimSelect({
                         select: `#selectElement-${row.id}`
@@ -596,6 +598,7 @@
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
                                 cells[6].textContent = row.querySelector(`[name="identified_issue_${rowId}"]`).value;
                                 cells[7].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
+                                cells[8].textContent = row.querySelector(`[name="technology_${rowId}"]`).value;
                             });
 
                             editedRows.clear();
