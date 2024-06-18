@@ -15,6 +15,31 @@ csrf = CSRFProtect(app)
 ROWS_PER_PAGE = 10
 
 
+class Technology(db.Model):
+    __tablename__ = 'technologies'
+
+    id = db.Column(db.Integer, primary_key=True)
+    technology_name = db.Column(db.String, unique=True)
+
+    def __init__(self, technology_name):
+        self.technology_name = technology_name
+
+    @staticmethod
+    def check_repeats(technology_name):
+        return db.session.query(
+            db.exists().where(Technology.technology_name == technology_name)
+        ).scalar()
+
+    @staticmethod
+    def add_technologies(technologies_string):
+        technologies = [tech.strip() for tech in technologies_string.split(',')]
+        for tech in technologies:
+            if not Technology.check_repeats(tech):
+                new_technology = Technology(tech)
+                db.session.add(new_technology)
+        db.session.commit()
+
+
 class IdentifiedIssue(db.Model):
     __tablename__ = 'identified_issues'
 
@@ -51,6 +76,7 @@ class RowForm(FlaskForm):
     comments = TextAreaField('Comments')
     rca = StringField('Root Cause Analysis')
     identified_issue = StringField('Identified Issue', validators=[DataRequired()])
+    technology = StringField('Technology', validators=[DataRequired()])
 
 
 class Row(db.Model):
@@ -65,8 +91,9 @@ class Row(db.Model):
     comments = db.Column(db.String)
     rca = db.Column(db.String)
     identified_issue = db.Column(db.String)
+    technology = db.Column(db.String)
 
-    def __init__(self, incident, prep, assigned_to, issue_date, in_scope, comments, rca, identified_issue):
+    def __init__(self, incident, prep, assigned_to, issue_date, in_scope, comments, rca, identified_issue, technology):
         self.incident = incident
         self.prep = prep
         self.assigned_to = assigned_to
@@ -75,6 +102,7 @@ class Row(db.Model):
         self.comments = comments
         self.rca = rca
         self.identified_issue = identified_issue
+        self.technology = technology
 
 
 with app.app_context():
@@ -90,6 +118,7 @@ def index():
         in_scope = "Yes" if form.in_scope.data else "No"
 
         identified_issues = request.form.get('identified_issue')
+        technology = request.form.get('technology')
 
         new_row = Row(
             incident=form.incident.data,
@@ -99,12 +128,14 @@ def index():
             in_scope=in_scope,
             comments=form.comments.data,
             rca=form.rca.data,
-            identified_issue=identified_issues
+            identified_issue=identified_issues,
+            technology=technology
         )
         db.session.add(new_row)
         db.session.commit()
 
         IdentifiedIssue.add_issues(identified_issues)
+        Technology.add_technologies(technology)
 
     page = request.args.get('page', 1, type=int)
     rows = Row.query.paginate(page=page, per_page=ROWS_PER_PAGE)
@@ -159,6 +190,11 @@ def get_issues():
     issues = IdentifiedIssue.query.all()
     return jsonify([{'text': issue.identified_issue} for issue in issues])
 
+@app.route('/get_technologies', methods=['GET'])
+def get_technologies():
+    technologies = Technology.query.all()
+    return jsonify([{'text': technology.technology_name} for technology in technologies])
+
 @app.route('/get_rows', methods=['GET'])
 def get_rows():
     filter_value = request.args.get('filter', '', type=str)
@@ -191,7 +227,8 @@ def get_rows():
                 'in_scope': row.in_scope,
                 'comments': row.comments,
                 'rca': row.rca,
-                'identified_issue': row.identified_issue
+                'identified_issue': row.identified_issue,
+                'technology': row.technology
             } for row in rows
         ],
         'total': pagination.total,

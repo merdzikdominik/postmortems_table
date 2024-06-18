@@ -45,6 +45,7 @@
                                 <th scope="col">Comments</th>
                                 <th scope="col">Identified Issue</th>
                                 <th scope="col">RCA</th>
+                                <th scope="col">Technology</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -59,6 +60,7 @@
                                     <td>{{ row.comments }}</td>
                                     <td>{{ row.identified_issue }}</td>
                                     <td>{{ row.rca }}</td>
+                                    <td>{{ row.technology }}</td>
                                     <td>
                                         <button class="btn btn-primary edit-row-btn">Edit</button>
                                         <button class="btn btn-danger delete-row-btn">Delete</button>
@@ -128,6 +130,12 @@
                 </select>
             </div>
 
+            <div class="mt-4 mb-4">
+                <label for="technology">Choose technology or add new one</label>
+                <select class="form-control" id="technology" name="technology" multiple>
+                </select>
+            </div>
+
             <div class="mt-4 mb-4 d-flex flex-column gap-2">
                 <label>Root Cause Analysis</label>
                 <div class="btn-group">
@@ -187,6 +195,7 @@
                     <th scope="col">Comments</th>
                     <th scope="col">Identified Issue</th>
                     <th scope="col">RCA</th>
+                    <th scope="col">Technology</th>
                 </tr>
             </thead>
             <tbody>
@@ -201,6 +210,7 @@
                         <td>{{ row.comments }}</td>
                         <td>{{ row.identified_issue }}</td>
                         <td>{{ row.rca }}</td>
+                        <td>{{ row.technology }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -290,6 +300,35 @@
                         })
                         .catch(error => console.error('Error fetching issues:', error));
 
+                    fetch('/get_technologies')
+                    .then(response => response.json())
+                    .then(data => {
+                        new SlimSelect({
+                            select: '#technology',
+                            data: [
+                                {
+                                    label: 'Technologies',
+                                    options: data,
+                                    placeholder: true,
+                                    text: 'Select technology'
+                                }
+                            ],
+                            events: {
+                                addable: function (value) {
+                                    if (value === 'bad') {
+                                        return false;
+                                    }
+
+                                    return {
+                                        text: value,
+                                        value: value.toLowerCase()
+                                    };
+                                }
+                            }
+                        });
+                    })
+                    .catch(error => console.error('Błąd pobierania technologii:', error));
+
                     break;
 
                 case 'block':
@@ -346,14 +385,21 @@
 
                 const employeesSelect = document.getElementById('assigned_to');
                 const selectedEmployees = Array.from(employeesSelect.selectedOptions).map(option => option.value);
-                const selectedUsers = selectedEmployees.join(', ')
+                const selectedUsers = selectedEmployees.join(', ');
+
+                const technologySelect = document.getElementById('technology');
+                const selectedTechnologies = Array.from(technologySelect.selectedOptions).map(option => option.value);
+                const selectedTechnology = selectedTechnologies.join(', ');
+
 
                 document.getElementById('identified_issue').value = selectedIssues;
                 document.getElementById('assigned_to').value = selectedUsers;
+                document.getElementById('technology').value = selectedTechnology;
 
                 const formData = new FormData(event.target);
                 formData.append('identified_issue', selectedIssues);
                 formData.append('assigned_to', selectedUsers);
+                formData.append('technology', selectedTechnology);
 
                 fetch('/', {
                     method: 'POST',
@@ -631,7 +677,7 @@
 
             function displayRows(rows) {
                 const tableBody = document.querySelector("#rows-table tbody");
-                tableBody.innerHTML = ''; // Clear current rows
+                tableBody.innerHTML = '';
 
                 rows.forEach((row) => {
                     const rowElement = document.createElement('tr');
@@ -645,6 +691,7 @@
                         <td>${row.comments}</td>
                         <td>${row.rca}</td>
                         <td>${row.identified_issue}</td>
+                        <td>${row.technology}</td>
                     `;
                     tableBody.appendChild(rowElement);
                 });
