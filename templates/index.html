@@ -160,7 +160,6 @@
                     </div>
                 </div>
             </div>
-            <input type="hidden" id="rca" name="rca">
 
             <button style="background-color: #ff6200;" type="submit" id="submit" class="w-100 btn text-light mb-4">Add info</button>
         </form>
@@ -367,6 +366,7 @@
                     const selectedValue = item.textContent.trim();
                     document.getElementById("rca").value = selectedValue;
                     dropdownMenu.style.display = "none";
+                    dropdownButton.textContent = selectedValue;
                 });
             });
 
@@ -532,30 +532,19 @@
                     cells[5].innerHTML = `<textarea class="form-control" name="comments_${row.id}" placeholder="${comments}">${comments}</textarea>`;
                     cells[6].innerHTML = `<input type="text" class="form-control" name="identified_issue_${row.id}" value="${identified_issue}" placeholder="${identified_issue}">`
                     cells[7].innerHTML = `<input type="text" class="form-control" name="rca_${row.id}" value="${rca}" placeholder="${rca}">`;
-                    cells[8].innerHTML = `<select id="technologySelect-${row.id}" class="form-control" name="technology_${row.id}" multiple>${technologyOptions}</select>`;
+                    cells[8].innerHTML = `<input type="text" class="form-control" name="technology_${row.id}" value="${technology}" placeholder="${technology}">`;
 
                     new SlimSelect({
                         select: `#selectElement-${row.id}`
                     });
 
-                    new SlimSelect({
-                        select: `#technologySelect-${row.id}`
-                    });
-
                     const selectElement = cells[2].querySelector('select');
-                    const selectTechs = cells[8].querySelector('select');
 
                     selectElement.addEventListener('change', function() {
                         const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
                         finalSelectedOptions = selectedOptions.join(', ');
                         console.log('Selected options:', finalSelectedOptions);
                     });
-
-                    selectTechs.addEventListener('change', function() {
-                        const selectedTechs = Array.from(selectTechs.selectedOptions).map(option => option.value);
-                        const finalSelectedTechs = selectedTechs.join(', ');
-                        console.log('Selected options:', finalSelectedTechs);
-                    })
 
                     this.style.display = 'none';
 
@@ -630,12 +619,7 @@
                                 cells[5].textContent = row.querySelector(`[name="comments_${rowId}"]`).value;
                                 cells[6].textContent = row.querySelector(`[name="identified_issue_${rowId}"]`).value;
                                 cells[7].textContent = row.querySelector(`[name="rca_${rowId}"]`).value;
-                                // cells[8].textContent = row.querySelector(`[name="technology_${rowId}"]`).value;
-                                const technologiesSelect = document.createElement('select');
-                                const selectedTechnologyOptions = Array.from(row.querySelectorAll(`[name="technology_${rowId}"] option[selected]`));
-                                selectedTechnologyOptions.forEach(option => {
-                                    technologiesSelect.appendChild(option.cloneNode(true));
-                                });
+                                cells[8].textContent = row.querySelector(`[name="technology_${rowId}"]`).value;
                             });
 
                             editedRows.clear();
@@ -890,10 +874,46 @@
 
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.aoa_to_sheet(tableData);
-                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
+                // Oblicz szerokość kolumn na podstawie zawartości
+                const colWidths = headers.map((header, colIndex) => {
+                    // Ustaw minimalną szerokość na długość nagłówka
+                    let maxWidth = header.length;
+
+                    // Sprawdź długości wszystkich danych w tej kolumnie
+                    tableData.forEach(row => {
+                        const cellValue = row[colIndex] || "";
+                        if (cellValue.length > maxWidth) {
+                            maxWidth = cellValue.length;
+                        }
+                    });
+
+                    // Zwróć obliczoną szerokość (przybliżenie szerokości w Excelu)
+                    return { wch: maxWidth + 2 }; // Dodajemy dodatkową szerokość dla marginesu
+                });
+
+                ws['!cols'] = colWidths;
+
+                // Stylizacja nagłówków kolumn
+                const headerRange = XLSX.utils.decode_range(ws['!ref']);
+                for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+                    if (!ws[cellAddress]) continue;
+
+                    ws[cellAddress].s = {
+                        fill: {
+                            fgColor: { rgb: "00FF00" } // Zielony kolor tła
+                        },
+                        font: {
+                            bold: true
+                        }
+                    };
+                }
+
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
                 XLSX.writeFile(wb, "data_export.xlsx");
             });
+
         });
 
     </script>
