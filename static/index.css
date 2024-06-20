@@ -5,3 +5,7 @@
     right: 35%;
     transform: translate(-50%, -50%);
 }
+
+.dropdown-toggle.no-arrow::after {
+    display: none;
+}

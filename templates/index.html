@@ -72,7 +72,7 @@
                     </table>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" id="close-modal" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="save-changes">Save changes</button>
                 </div>
             </div>
@@ -160,6 +160,8 @@
                     </div>
                 </div>
             </div>
+
+            <input type="hidden" id="rca" name="rca">
 
             <button style="background-color: #ff6200;" type="submit" id="submit" class="w-100 btn text-light mb-4">Add info</button>
         </form>
@@ -353,27 +355,32 @@
 
             dropdownMenu.style.display = "none";
 
-            dropdownButton.addEventListener("click", () => {
+            dropdownButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+
                 if (dropdownMenu.style.display === "block") {
                     dropdownMenu.style.display = "none";
                 } else {
                     dropdownMenu.style.display = "block";
                 }
             });
-
             dropdownItems.forEach(item => {
                 item.addEventListener("click", () => {
                     const selectedValue = item.textContent.trim();
                     document.getElementById("rca").value = selectedValue;
                     dropdownMenu.style.display = "none";
                     dropdownButton.textContent = selectedValue;
+                    dropdownButton.classList.add("no-arrow");
                 });
             });
-
             document.addEventListener("click", (event) => {
                 if (!dropdownButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
                     dropdownMenu.style.display = "none";
                 }
+            });
+
+            dropdownMenu.addEventListener("click", (event) => {
+                event.stopPropagation();
             });
 
             const form = document.getElementById("row-form");
@@ -551,6 +558,14 @@
                     editedRows.add(row.id);
 
                 });
+            });
+
+            const closeModal = document.getElementById('close-modal');
+
+            closeModal.addEventListener('click', function() {
+                const modalBackdrop = document.getElementById('modal-backdrop');
+                modalBackdrop.style.display = "none";
+                modal.style.display = "none"
             });
 
             const saveButton = document.getElementById('save-changes');
