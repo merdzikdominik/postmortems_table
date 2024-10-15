@@ -10,8 +10,8 @@
 </head>
 <body>
     <button style="background-color: #ff6200;" class="w-100 btn text-light rounded-0" id="create-row-btn">Add Postmortem Info</button>
-    <button class=" w-100 btn btn-primary text-light rounded-0" id="edit-postmortem">Edit postmortem</button>
-    <button class=" w-100 btn btn-success text-light rounded-0" id="excel-export">Export data to excel</button>
+    <button class=" w-100 btn btn-primary text-light rounded-0" id="edit-postmortem">Edit Postmortem</button>
+    <button class=" w-100 btn btn-success text-light rounded-0" id="excel-export">Export Data to Excel</button>
     <!--  edit table modal  -->
     <div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-center z-2" role="document">
@@ -352,6 +352,17 @@
             const dropdownButton = document.querySelector(".dropdown-toggle");
             const dropdownMenu = document.querySelector(".dropdown-menu");
             const dropdownItems = document.querySelectorAll(".dropdown-item");
+
+            // let techs = []
+
+            // try {
+            //     const response = await fetch('http://icebreaker-api-service.icebreak-dev.svc.cluster.local:8080/api/v1/postmortems');
+            //     techs = await response.json();
+            // } catch (error) {
+            //     console.error('Error fetching issues:', error);
+            // }
+
+            // console.log(techs)
 
             dropdownMenu.style.display = "none";
 
@@ -891,12 +902,9 @@
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.aoa_to_sheet(tableData);
 
-                // Oblicz szerokość kolumn na podstawie zawartości
                 const colWidths = headers.map((header, colIndex) => {
-                    // Ustaw minimalną szerokość na długość nagłówka
                     let maxWidth = header.length;
 
-                    // Sprawdź długości wszystkich danych w tej kolumnie
                     tableData.forEach(row => {
                         const cellValue = row[colIndex] || "";
                         if (cellValue.length > maxWidth) {
@@ -904,13 +912,11 @@
                         }
                     });
 
-                    // Zwróć obliczoną szerokość (przybliżenie szerokości w Excelu)
-                    return { wch: maxWidth + 2 }; // Dodajemy dodatkową szerokość dla marginesu
+                    return { wch: maxWidth + 2 };
                 });
 
                 ws['!cols'] = colWidths;
 
-                // Stylizacja nagłówków kolumn
                 const headerRange = XLSX.utils.decode_range(ws['!ref']);
                 for (let C = headerRange.s.c; C <= headerRange.e.c; ++C) {
                     const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
@@ -918,7 +924,7 @@
 
                     ws[cellAddress].s = {
                         fill: {
-                            fgColor: { rgb: "00FF00" } // Zielony kolor tła
+                            fgColor: { rgb: "00FF00" }
                         },
                         font: {
                             bold: true
